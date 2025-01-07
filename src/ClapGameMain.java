@@ -19,29 +19,78 @@ import java.io.*;
 public class ClapGameMain {
     public static void main(String[] args) {
         List<Player> players = new ArrayList<>();
-        players.add(new Player("A", 0.1));
-        players.add(new Player("B", 0.3));
+        players.add(new Player("Amy", 0.1));
+        players.add(new Player("Benny", 0.3));
 
-        Game game = new Game(players);
-
+        Game game = new Game(players, new SeoulGame());
         game.play();
+
+        System.out.println("=====================");
+
+        Game game2 = new Game(players, new BusanGame());
+        game2.play();
     }
 }
 
+abstract class GameRule {
+    // 언제 행동을 할지
+    abstract boolean playGame(int n);
+
+    // action
+    abstract String playAction(int n);
+}
+
+class SeoulGame extends GameRule {
+    @Override
+    boolean playGame(int n) {
+        String s = String.valueOf(n);
+        return s.contains("3") || s.contains("6") || s.contains("9");
+    }
+
+    @Override
+    String playAction(int n) {
+        String s = String.valueOf(n);
+        int count = (int) s.chars()
+            .filter(c -> c == '3' || c == '6' || c == '9')
+            .count();
+        return "짝".repeat(count);
+    }
+
+}
+
+class BusanGame extends GameRule {
+    @Override
+    boolean playGame(int n) {
+        String s = String.valueOf(n);
+        return s.contains("2") || s.contains("4") || s.contains("6");
+    }
+
+    @Override
+    String playAction(int n) {
+        String s = String.valueOf(n);
+        int count = (int) s.chars()
+            .filter(c -> c == '2' || c == '4' || c == '6')
+            .count();
+        return "쿵".repeat(count);
+    }
+}
 
 class Game {
     List<Player> players;
     int currentNumber;
+    GameRule rule;
 
-    Game(List<Player> players) {
+    Game(List<Player> players, GameRule rule) {
         this.players = players;
         this.currentNumber = 1;
+        this.rule = rule;
+
     }
 
     public void play() {
         while (true) {
             for (Player p : players) {
-                String res = p.takeTurn(currentNumber);
+                String res = p.takeTurn(currentNumber, rule);
 
                 if (res.equals("오답")) {
                     System.out.println(p.getName() + " 오답: 게임 종료!");
@@ -65,21 +114,18 @@ class Player {
         this.random = new Random();
     }
 
-    public String takeTurn(int number) {
+    public String takeTurn(int number, GameRule rule) {
         if (random.nextDouble() < errorRate) {
             return failAction(number);
         }
-        return correctAction(number);
+        return correctAction(number, rule);
     }
 
-    public String correctAction(int number) {
-        String s = String.valueOf(number);
-
-        long count = s.chars()
-            .filter(c -> c == '3' || c == '6' || c == '9')
-            .count();
-
-        return count > 0 ? "짝".repeat( (int) count ) : s;
+    public String correctAction(int number, GameRule rule) {
+        if (rule.playGame(number)) {
+            return rule.playAction(number);
+        }
+        return String.valueOf(number);
     }
 
     public String failAction(int number) {
