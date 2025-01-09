@@ -1,9 +1,11 @@
 import java.util.List;
 
 public class Game {
-    List<Player> players;
-    int currentNumber;
-    GameRule rule;
+    private static final String WRONG_ANSWER = "오답";
+
+    private  List<Player> players;
+    private  int currentNumber;
+    private  GameRule rule;
 
     Game(List<Player> players, GameRule rule) throws Exception {
         if (players == null || players.isEmpty()) {
@@ -19,22 +21,36 @@ public class Game {
     }
 
     public void play() {
-        try {
-            while (true) {
-                for (Player p : players) {
-                    String res = p.takeTurn(currentNumber, rule);
-
-                    if (res.equals("오답")) {
-                        System.out.println(p.getName() + " 오답: 게임 종료!");
-                        return;
-                    }
-                    System.out.println(p.getName() + " 응답 : " + res);
-                    currentNumber++;
+        while(true) {
+            for (Player p : players) {
+                if (!processTurn(p)) {
+                    System.out.println("게임이 종료되었습니다.");
+                    return;
                 }
             }
-        } catch (Exception e) {
-            System.err.println("An unexpected error occurred during the game: " + e.getMessage());
+        }
+    }
+
+    private boolean processTurn(Player p) {
+        try {
+            String res = p.takeTurn(currentNumber, rule);
+
+            if (res.equals(WRONG_ANSWER)) {
+                System.out.println(p.getName() + " 오답");
+                return false;
+            }
+            System.out.println(p.getName() + " 응답 : " + res);
+            currentNumber++;
+            return true;
+
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
+            return false;
+
+        } catch (RuntimeException e) {
+            System.err.println("알 수 없는 오류 발생: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
     }
 }
