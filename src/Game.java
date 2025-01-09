@@ -24,7 +24,7 @@ public class Game {
         while(true) {
             for (Player p : players) {
                 if (!processTurn(p)) {
-                    System.out.println("게임이 종료되었습니다.");
+                    System.out.println("게임이 종료되었습니다!");
                     return;
                 }
             }
